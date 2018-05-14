@@ -1,0 +1,22 @@
+{
+  "name": "flinebux/ukrposhta-api",
+  "description": "PHP class for API 0.0.1 ukrainian delivery company \"Ukrposhta\"",
+  "keywords": ["delivery", "delivery service", "ukrposhta", "ukrposhta api"],
+  "homepage": "https://github.com/flinebux/",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Oleksandr Korman",
+      "homepage": "https://github.com/flinebux/ukrposhta-api",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": ">=5.4.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "flinebux\\": "src/"
+    }
+  }
+}
