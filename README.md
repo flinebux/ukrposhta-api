@@ -1,6 +1,10 @@
 # UkrposhtaApi
 Класс предоставляет доступ к функциям API Укрпочты
 
+[![Latest Stable Version](https://poser.pugx.org/flinebux/ukrposhta-api/v/stable)](https://packagist.org/packages/flinebux/ukrposhta-api) 
+[![Total Downloads](https://poser.pugx.org/flinebux/ukrposhta-api/downloads)](https://packagist.org/packages/flinebux/ukrposhta-api) 
+[![License](https://poser.pugx.org/flinebux/ukrposhta-api/license)](https://packagist.org/packages/flinebux/ukrposhta-api)
+
 # Подготовка
 Для использования API необходимо: bearer ключ и token ключ.
 После получения ключей API предоставляется возможность использовать все методы класса
