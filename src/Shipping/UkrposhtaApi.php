@@ -1,6 +1,7 @@
 <?php
 
 namespace flinebux\Shipping;
+
 /**
  * Ukrposhta API Class
  *
@@ -21,7 +22,7 @@ class UkrposhtaApi
     /**
      * @var bool $throwErrors Throw exceptions when in response is error
      */
-    protected $throwErrors = FALSE;
+    protected $throwErrors = false;
     /**
      * @var string $format Format of returned data - array
      */
@@ -39,13 +40,17 @@ class UkrposhtaApi
      */
     protected $responseTime = '30';
 
+    const METHOD_GET = 'HTTPGET';
+    const METHOD_POST = 'POST';
+    const METHOD_PUT = 'PUT';
+
     /**Default constructor
      * UkrposhtaApi constructor.
      * @param $bearer
      * @param bool $token
      * @param bool $throwErrors
      */
-    function __construct($bearer, $token = FALSE, $throwErrors = FALSE)
+    public function __construct($bearer, $token = false, $throwErrors = false)
     {
         $this->throwErrors = $throwErrors;
         return $this
@@ -57,7 +62,7 @@ class UkrposhtaApi
      * @param $bearer
      * @return $this
      */
-    function setBearer($bearer)
+    public function setBearer($bearer)
     {
         $this->bearer = $bearer;
         return $this;
@@ -66,7 +71,7 @@ class UkrposhtaApi
     /**Getter for bearer property
      * @return string
      */
-    function getBearer()
+    public function getBearer()
     {
         return $this->bearer;
     }
@@ -75,7 +80,7 @@ class UkrposhtaApi
      * @param $token
      * @return $this
      */
-    function setToken($token)
+    public function setToken($token)
     {
         $this->token = $token;
         return $this;
@@ -84,7 +89,7 @@ class UkrposhtaApi
     /**Getter for token property
      * @return string
      */
-    function getToken()
+    public function getToken()
     {
         return $this->token;
     }
@@ -93,7 +98,7 @@ class UkrposhtaApi
      * @param $format
      * @return $this
      */
-    function setFormat($format)
+    public function setFormat($format)
     {
         $this->format = $format;
         return $this;
@@ -102,7 +107,7 @@ class UkrposhtaApi
     /**Getter for format property
      * @return string
      */
-    function getFormat()
+    public function getFormat()
     {
         return $this->format;
     }
@@ -111,16 +116,18 @@ class UkrposhtaApi
      * @param $responseTime
      * @return $this
      */
-    function setResponseTime($responseTime)
+    public function setResponseTime($responseTime)
     {
-        if (is_numeric($responseTime)) $this->responseTime = $responseTime;
+        if (is_numeric($responseTime)) {
+            $this->responseTime = $responseTime;
+        }
         return $this;
     }
 
-    /**Getter for property responceTime
+    /**Getter for property responseTime
      * @return string
      */
-    function getResponseTime()
+    public function getResponseTime()
     {
         return $this->responseTime;
     }
@@ -129,7 +136,7 @@ class UkrposhtaApi
      * @param $data
      * @return array|mixed
      */
-    private function prepare($data)
+    protected function prepare($data)
     {
         //Returns array
         if ($this->format == 'array') {
@@ -140,7 +147,21 @@ class UkrposhtaApi
         return $data;
     }
 
-    /**Request function for model Adress
+    /**Default curl options
+     * @return array
+     */
+    protected function curlDefaultOptions()
+    {
+        return [
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Authorization: Bearer ' . $this->bearer],
+            CURLOPT_HEADER => 0,
+            CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_TIMEOUT => $this->responseTime
+        ];
+    }
+
+    /**Request function for model Address
      * @param $model
      * @param string $method
      * @param null $params
@@ -148,33 +169,33 @@ class UkrposhtaApi
      * @return array|mixed
      * @throws \Exception
      */
-    private function request($model, $method = 'HTTPGET', $params = NULL, $add = '')
+    protected function request($model, $method = self::METHOD_GET, $params = null, $add = '')
     {
         /* Get required URL*/
         $url = $this->url . 'ecom' . $this->apiVersion . $model . $add;
 
-        /* Convert data to neccessary format*/
+        /* Convert data to necessary format*/
         $post = json_encode($params);
 
+        $options = $this->curlDefaultOptions();
+        $options[constant(CURLOPT_ . $method)] = 1;
+
         $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: Bearer ' . $this->bearer));
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, constant(CURLOPT_ . $method), 1);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->responseTime);
-
-        if ($method != 'HTTPGET') curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
-
+        if ($method != self::METHOD_GET) {
+            $options[CURLOPT_POSTFIELDS] = $post;
+        }
+        curl_setopt_array($ch, $options);
         $result = curl_exec($ch);
         curl_close($ch);
 
-        if (curl_errno($ch) && $this->throwErrors) throw new \Exception(curl_error($ch));
+        if (curl_errno($ch) && $this->throwErrors) {
+            throw new \Exception(curl_error($ch));
+        }
 
         return $this->prepare($result);
     }
 
-    /**Request for model client, smartbox, print with token
+    /**Request for model client, smartBox, print with token
      * @param $model
      * @param string $method
      * @param null $params
@@ -183,26 +204,26 @@ class UkrposhtaApi
      * @return array|mixed
      * @throws \Exception
      */
-    private function requestToken($model, $method = 'HTTPGET', $params = NULL, $add = '', $file = false)
+    protected function requestToken($model, $method = self::METHOD_GET, $params = null, $add = '', $file = false)
     {
         /* Get required URL*/
         $url = $this->url . 'ecom' . $this->apiVersion . $model . $add . '?token=' . $this->token;
 
-        /* Convert data to neccessary format*/
+        /* Convert data to necessary format*/
         $post = json_encode($params);
 
+        $options = $this->curlDefaultOptions();
+        $options[constant(CURLOPT_ . $method)] = 1;
+
         $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: Bearer ' . $this->bearer));
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, constant(CURLOPT_ . $method), 1);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->responseTime);
-
-        if ($method != 'HTTPGET') curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
-
+        if ($method != self::METHOD_GET) {
+            $options[CURLOPT_POSTFIELDS] = $post;
+        }
+        curl_setopt_array($ch, $options);
         $result = curl_exec($ch);
-        if (curl_errno($ch) && $this->throwErrors) throw new \Exception(curl_error($ch));
+        if (curl_errno($ch) && $this->throwErrors) {
+            throw new \Exception(curl_error($ch));
+        }
 
         curl_close($ch);
 
@@ -211,7 +232,6 @@ class UkrposhtaApi
         } else {
             return $this->prepare($result);
         }
-
     }
 
     /**Similar function to requestToken, but only for PUT request
@@ -221,25 +241,25 @@ class UkrposhtaApi
      * @return array|mixed
      * @throws \Exception
      */
-    private function requestTokenPut($model, $params = NULL, $add = '')
+    protected function requestTokenPut($model, $params = null, $add = '')
     {
         /* Get required URL*/
         $url = $this->url . 'ecom' . $this->apiVersion . $model . $add . '?token=' . $this->token;
 
-        /* Convert data to neccessary format*/
+        /* Convert data to necessary format*/
         $post = json_encode($params);
 
+        $options = $this->curlDefaultOptions();
+        $options[CURLOPT_CUSTOMREQUEST] = self::METHOD_PUT;
+        $options[CURLOPT_POSTFIELDS] = $post;
+
         $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: Bearer ' . $this->bearer));
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->responseTime);
+        curl_setopt_array($ch, $options);
         $result = curl_exec($ch);
 
-        if (curl_errno($ch) && $this->throwErrors) throw new \Exception(curl_error($ch));
+        if (curl_errno($ch) && $this->throwErrors) {
+            throw new \Exception(curl_error($ch));
+        }
 
         curl_close($ch);
 
@@ -248,61 +268,69 @@ class UkrposhtaApi
 
     /**Request token for tracking barcode
      * @param $model
-     * @param null $params
      * @param string $add
      * @return array|mixed
      * @throws \Exception
      */
-    private function requestTracking($model, $params = NULL, $add = '')
+    protected function requestTracking($model, $add = '')
     {
         /* Get required URL*/
         $url = $this->url . 'status-tracking' . $this->apiVersion . $model . $add;
 
-        /* Convert data to neccessary format*/
-        $post = json_encode($params);
+        $options = $this->curlDefaultOptions();
+        $options[CURLOPT_HTTPGET] = 1;
 
         $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: Bearer ' . $this->bearer));
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_HTTPGET, 1);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->responseTime);
+        curl_setopt_array($ch, $options);
         $result = curl_exec($ch);
 
-        if (curl_errno($ch) && $this->throwErrors) throw new \Exception(curl_error($ch));
+        if (curl_errno($ch) && $this->throwErrors) {
+            throw new \Exception(curl_error($ch));
+        }
 
         curl_close($ch);
 
         return $this->prepare($result);
-
     }
 
     /**Get created address by id
      * @param $id int
      * @return array|mixed
      */
-    function modelAdressGet($id)
+    public function modelAdressGet($id)
     {
-        return $this->request('addresses', 'HTTPGET', NULL, '/' . $id);
+        return $this->request(
+            'addresses',
+            self::METHOD_GET,
+            null,
+            '/' . $id
+        );
     }
 
     /**Create address. For example:
      * @param $data array
      * @return array|mixed
      */
-    function modelAdressPost($data)
+    public function modelAdressPost($data)
     {
-        return $this->request('addresses', 'POST', $data);
+        return $this->request(
+            'addresses',
+            self::METHOD_POST,
+            $data
+        );
     }
 
     /**Creating new client
      * @param $data array
      * @return array|mixed
      */
-    function modelClientsPost($data)
+    public function modelClientsPost($data)
     {
-        return $this->requestToken('clients', 'POST', $data);
+        return $this->requestToken(
+            'clients',
+            self::METHOD_POST,
+            $data
+        );
     }
 
     /**Change data to existing client
@@ -310,74 +338,110 @@ class UkrposhtaApi
      * @param $data array
      * @return array|mixed
      */
-    function modelClientsPut($id, $data)
+    public function modelClientsPut($id, $data)
     {
-        return $this->requestToken('clients', 'PUT', $data, '/' . $id);
+        return $this->requestToken(
+            'clients',
+            self::METHOD_PUT,
+            $data,
+            '/' . $id
+        );
     }
 
     /**Get created clients by external-id
      * @param $id int
      * @return array|mixed
      */
-    function modelClientsGet($id)
+    public function modelClientsGet($id)
     {
-        return $this->requestToken('clients', 'HTTPGET', NULL, '/external-id/' . $id);
+        return $this->requestToken(
+            'clients',
+            self::METHOD_GET,
+            null,
+            '/external-id/' . $id
+        );
     }
 
     /**Creating shipment
      * @param $data array
      * @return array|mixed
      */
-    function modelShipmentsPost($data)
+    public function modelShipmentsPost($data)
     {
-        return $this->requestToken('shipments', 'POST', $data);
+        return $this->requestToken(
+            'shipments',
+            self::METHOD_POST,
+            $data
+        );
     }
 
     /**Get file for print
      * @param $id string
      * @return array|mixed
      */
-    function modelPrint($id)
+    public function modelPrint($id)
     {
-        return $this->requestToken('shipments', 'HTTPGET', NULL, '/' . $id . '/label', TRUE);
+        return $this->requestToken(
+            'shipments',
+            self::METHOD_GET,
+            null,
+            '/' . $id . '/label',
+            true
+        );
     }
 
-    /**Request for use smartbox
-     * @param $smartboxcode string
-     * @param $clientuuid string
+    /**Request for use smartBox
+     * @param $smartBoxCode string
+     * @param $clientUuid string
      * @return array|mixed
      */
-    function modelSmartBoxPost($smartboxcode, $clientuuid)
+    public function modelSmartBoxPost($smartBoxCode, $clientUuid)
     {
-        return $this->requestToken('smart-boxes', 'POST', NULL, '/' . $smartboxcode . '/use-with-sender/' . $clientuuid);
+        return $this->requestToken(
+            'smart-boxes',
+            self::METHOD_POST,
+            null,
+            '/' . $smartBoxCode . '/use-with-sender/' . $clientUuid
+        );
     }
 
-    /**Initialization smartbox shipment
-     * @param $smartboxcode string
+    /**Initialization smartBox shipment
+     * @param $smartBoxCode string
      * @return array|mixed
      */
-    function modelSmartBoxGet($smartboxcode)
+    public function modelSmartBoxGet($smartBoxCode)
     {
-        return $this->requestToken('smart-boxes', 'HTTPGET', NULL, '/' . $smartboxcode . '/shipments/next');
+        return $this->requestToken(
+            'smart-boxes',
+            self::METHOD_GET,
+            null,
+            '/' . $smartBoxCode . '/shipments/next'
+        );
     }
 
-    /**Creating smartbox shipment
-     * @param $smartboxshipmentuuid string
+    /**Creating smartBox shipment
+     * @param $smartBoxShipmentUuid string
      * @param $data array
      * @return array|mixed
      */
-    function modelSmartBoxPut($smartboxshipmentuuid, $data)
+    public function modelSmartBoxPut($smartBoxShipmentUuid, $data)
     {
-        return $this->requestTokenPut('shipments', $data, '/' . $smartboxshipmentuuid);
+        return $this->requestTokenPut(
+            'shipments',
+            $data,
+            '/' . $smartBoxShipmentUuid
+        );
     }
 
     /**Getting last status of barcode
      * @param $barcode string
      * @return array|mixed
      */
-    function modelStatuses($barcode)
+    public function modelStatuses($barcode)
     {
-        return $this->requestTracking('statuses/last', null, '?barcode=' . $barcode);
+        return $this->requestTracking(
+            'statuses/last',
+            '?barcode=' . $barcode
+        );
     }
-
 }
