@@ -27,7 +27,7 @@ git clone https://github.com/flinebux/ukrposhta-api
 и запустить из командной строки команду ``php composer.phar install`` или ``php composer.phar update``
 Или выполнить в командной строке 
 ```
-composer require flinebux/ukrposhta-api:dev-master
+composer require flinebux/ukrposhta-api
 ```
 
 # Форматы данных
@@ -76,4 +76,33 @@ $address = $ukrposhtaApi->modelAdressPost(array(
      "length"=> 170
    )
   ));
+```
+
+## Создание собственных методов
+На примере метода modelAdressPost создадим собственный метод
+```php
+ use flinebux\Shipping\UkrposhtaApi;
+ 
+ class UkrposhtaApiCustom extends UkrposhtaApi
+ {
+     public function customMethod($data)
+     {
+         return $this->request(
+             'addresses',
+             self::METHOD_POST,
+             $data
+         );
+     }
+ }
+```
+Для кастомизации были определены 3 метода HTTP запросов( метод DELETE будет добавлен позже):
+```php
+self::METHOD_GET;
+self::METHOD_POST;
+self::METHOD_PUT;
+```
+А также 2 основных метода, для запросов с токеном и без:
+```php
+$this->request($model, $method = self::METHOD_GET, $params = null, $add = '');
+$this->requestToken($model, $method = self::METHOD_GET, $params = null, $add = '', $file = false);
 ```

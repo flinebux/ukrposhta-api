@@ -186,11 +186,10 @@ class UkrposhtaApi
         }
         curl_setopt_array($ch, $options);
         $result = curl_exec($ch);
-        curl_close($ch);
-
         if (curl_errno($ch) && $this->throwErrors) {
             throw new \Exception(curl_error($ch));
         }
+        curl_close($ch);
 
         return $this->prepare($result);
     }
@@ -224,7 +223,6 @@ class UkrposhtaApi
         if (curl_errno($ch) && $this->throwErrors) {
             throw new \Exception(curl_error($ch));
         }
-
         curl_close($ch);
 
         if ($file) {
@@ -256,11 +254,9 @@ class UkrposhtaApi
         $ch = curl_init($url);
         curl_setopt_array($ch, $options);
         $result = curl_exec($ch);
-
         if (curl_errno($ch) && $this->throwErrors) {
             throw new \Exception(curl_error($ch));
         }
-
         curl_close($ch);
 
         return $this->prepare($result);
@@ -283,11 +279,9 @@ class UkrposhtaApi
         $ch = curl_init($url);
         curl_setopt_array($ch, $options);
         $result = curl_exec($ch);
-
         if (curl_errno($ch) && $this->throwErrors) {
             throw new \Exception(curl_error($ch));
         }
-
         curl_close($ch);
 
         return $this->prepare($result);
