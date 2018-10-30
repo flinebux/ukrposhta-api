@@ -20,14 +20,14 @@ git clone https://github.com/flinebux/ukrposhta-api
 ```json
 {
     "require": {
-        "flinebux/ukrposhta-api": "dev-master"
+        "flinebux/ukrposhta-api": "dev-feature"
     }
 }
 ```
 и запустить из командной строки команду ``php composer.phar install`` или ``php composer.phar update``
 Или выполнить в командной строке 
 ```
-composer require flinebux/ukrposhta-api
+composer require flinebux/ukrposhta-api:dev-feature
 ```
 
 # Форматы данных
@@ -38,7 +38,7 @@ composer require flinebux/ukrposhta-api
 # Использование 
 ## Создание экземпляра класса
 ```php
-$ukrposhtaApi = new UkrposhtaApi('my_bearer','my_token');
+$ukrposhtaApi = new UkrposhtaApiNew('my_bearer','my_token');
 ```
 
 ## Получение последнего статуса о трек-номере
@@ -48,7 +48,7 @@ $result = $ukrposhtaApi->modelStatuses('204001234567');
 
 ## Создание адреса клиента
 ```php
-$address = $ukrposhtaApi->modelAdressPost(array(
+$address = $ukrposhtaApi->modelAddressPost(array(
 "postcode"=>"07401",
 "country"=> "UA",
 "region"=>"Київська",
@@ -79,7 +79,7 @@ $address = $ukrposhtaApi->modelAdressPost(array(
 ```
 
 ## Создание собственных методов
-На примере метода modelAdressPost создадим собственный метод
+На примере метода modelAddressPost создадим собственный метод
 ```php
  use flinebux\Shipping\UkrposhtaApi;
  
@@ -95,11 +95,12 @@ $address = $ukrposhtaApi->modelAdressPost(array(
      }
  }
 ```
-Для кастомизации были определены 3 метода HTTP запросов( метод DELETE будет добавлен позже):
+Для кастомизации были определены 4 метода HTTP запросов:
 ```php
 self::METHOD_GET;
 self::METHOD_POST;
 self::METHOD_PUT;
+self::METHOD_DELETE;
 ```
 А также 2 основных метода, для запросов с токеном и без:
 ```php
